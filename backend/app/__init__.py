@@ -1,0 +1,1 @@
+"""DegreeLens backend application."""

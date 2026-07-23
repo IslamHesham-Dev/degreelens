@@ -1,0 +1,29 @@
+[project]
+name = "degreelens-api"
+version = "0.1.0"
+description = "Private GIU academic advisory backend for DegreeLens."
+requires-python = ">=3.11,<3.14"
+dependencies = [
+    "beautifulsoup4>=4.12",
+    "fastapi>=0.115",
+    "langchain>=1.0",
+    "langchain-anthropic>=0.3",
+    "lxml>=5.0",
+    "pydantic-settings>=2.7",
+    "requests>=2.31",
+    "requests-ntlm>=1.2",
+    "uvicorn[standard]>=0.34",
+]
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28",
+    "pytest>=8.3",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.uv]
+package = false

@@ -1,0 +1,56 @@
+from __future__ import annotations
+
+from pydantic import BaseModel, Field
+
+
+class AdvisoryContextResponse(BaseModel):
+    simulated_current_season: str
+    transcript_year: str
+    data_sources: list[str]
+    excluded_sources: list[str]
+
+
+class CourseListResponse(BaseModel):
+    season: str
+    courses: list[str]
+
+
+class AssessmentResponse(BaseModel):
+    assessment: str
+    element: str
+    grade: str
+    evaluator: str
+
+
+class CourseGradesResponse(BaseModel):
+    season: str
+    course: str
+    assessments: list[AssessmentResponse]
+    midterm_results: dict[str, str]
+
+
+class TranscriptCourseResponse(BaseModel):
+    semester: str
+    course: str
+    grade: str
+    numeric: str
+    hours: str
+    group: str
+
+
+class TranscriptResponse(BaseModel):
+    year: str
+    cumulative_gpa: str | None
+    courses: list[TranscriptCourseResponse]
+
+
+class GradeSeasonListResponse(BaseModel):
+    seasons: list[str]
+
+
+class TranscriptYearListResponse(BaseModel):
+    years: list[str]
+
+
+class CourseQuery(BaseModel):
+    course: str = Field(min_length=1, max_length=240)

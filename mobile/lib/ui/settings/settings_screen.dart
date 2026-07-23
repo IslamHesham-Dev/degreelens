@@ -1,0 +1,220 @@
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+
+import '../../app/theme.dart';
+import '../../core/environment.dart';
+import '../../data/repositories.dart';
+import '../core/lens_components.dart';
+
+class SettingsScreen extends StatelessWidget {
+  const SettingsScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final academic = context.watch<AcademicRepository>();
+    final auth = context.watch<AuthRepository>();
+    return Scaffold(
+      body: AuroraBackground(
+        child: SafeArea(
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 40),
+            children: [
+              Row(
+                children: [
+                  IconButton.filledTonal(
+                    onPressed: () => context.pop(),
+                    icon: const Icon(Icons.arrow_back_rounded),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Settings',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 28),
+              const PageHeading(
+                eyebrow: 'Control centre',
+                title: 'Private by design.',
+                subtitle:
+                    'Manage the assumptions, session, and cached academic data behind DegreeLens.',
+              ),
+              const SizedBox(height: 24),
+              LensCard(
+                child: Column(
+                  children: [
+                    _SettingRow(
+                      icon: Icons.calendar_month_rounded,
+                      title: 'Advisory semester',
+                      value: academic.context?.currentSeason ??
+                          auth.session?.currentSeason ??
+                          'Winter 2024',
+                    ),
+                    const Divider(height: 25),
+                    _SettingRow(
+                      icon: Icons.school_rounded,
+                      title: 'Transcript year',
+                      value: academic.context?.transcriptYear ??
+                          auth.session?.advisoryYear ??
+                          '2024-2025',
+                    ),
+                    const Divider(height: 25),
+                    const _SettingRow(
+                      icon: Icons.visibility_outlined,
+                      title: 'Data scope',
+                      value: 'Portal only · CMS excluded',
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 18),
+              LensCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Data controls',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Cached data reduces repeated requests to GIU’s slow portal.',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                    const SizedBox(height: 16),
+                    OutlinedButton.icon(
+                      onPressed: () async {
+                        await academic.clearPortalCache();
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Portal cache cleared.'),
+                            ),
+                          );
+                        }
+                      },
+                      icon: const Icon(Icons.cleaning_services_outlined),
+                      label: const Text('Clear portal cache'),
+                    ),
+                    const SizedBox(height: 10),
+                    OutlinedButton.icon(
+                      onPressed: () =>
+                          context.read<AdvisorRepository>().reset(),
+                      icon: const Icon(Icons.forum_outlined),
+                      label: const Text('Reset advisor conversation'),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 18),
+              LensCard(
+                color: LensColors.ink,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(Icons.shield_outlined, color: LensColors.aqua),
+                    const SizedBox(height: 14),
+                    const Text(
+                      'Your GIU password is never sent to the AI.',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 16,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'The app stores only a short-lived DegreeLens session token in secure device storage.',
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: .62),
+                        height: 1.45,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 18),
+              FilledButton.icon(
+                style: FilledButton.styleFrom(
+                  backgroundColor: LensColors.rose,
+                ),
+                onPressed: auth.isBusy
+                    ? null
+                    : () async {
+                        await context.read<AdvisorRepository>().reset();
+                        academic.clearLocal();
+                        await auth.logout();
+                      },
+                icon: const Icon(Icons.logout_rounded),
+                label: const Text('Sign out and close portal session'),
+              ),
+              const SizedBox(height: 22),
+              Text(
+                'API · ${Environment.apiBaseUrl}',
+                textAlign: TextAlign.center,
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyMedium
+                    ?.copyWith(fontSize: 10),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SettingRow extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String value;
+
+  const _SettingRow({
+    required this.icon,
+    required this.title,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          width: 42,
+          height: 42,
+          decoration: BoxDecoration(
+            color: LensColors.indigo.withValues(alpha: .09),
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Icon(icon, color: LensColors.indigo, size: 21),
+        ),
+        const SizedBox(width: 13),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 13,
+                ),
+              ),
+              const SizedBox(height: 3),
+              Text(
+                value,
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyMedium
+                    ?.copyWith(fontSize: 11),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
