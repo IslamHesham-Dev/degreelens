@@ -62,8 +62,8 @@ class SettingsScreen extends StatelessWidget {
                     const Divider(height: 25),
                     const _SettingRow(
                       icon: Icons.visibility_outlined,
-                      title: 'Data scope',
-                      value: 'Portal only · CMS excluded',
+                      title: 'Academic data source',
+                      value: 'GIU Student Portal',
                     ),
                   ],
                 ),
