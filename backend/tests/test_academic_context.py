@@ -1,4 +1,5 @@
 from app.academic import AcademicService
+from app.main import app
 
 
 class FakePortal:
@@ -40,3 +41,9 @@ def test_select_current_season_accepts_unique_fragment() -> None:
     context = academic.select_current_season("Spring")
 
     assert context["simulated_current_season"] == "Spring 2024"
+
+
+def test_advisory_semester_update_has_an_explicit_post_route() -> None:
+    operation = app.openapi()["paths"]["/v1/academic/advisory-semester"]
+
+    assert "post" in operation

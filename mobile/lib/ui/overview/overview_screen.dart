@@ -57,8 +57,10 @@ class _OverviewScreenState extends State<OverviewScreen> {
                     subtitle:
                         'A calm view of where you stand and what deserves attention next.',
                   ),
+                  const SizedBox(height: 18),
+                  _AdvisorySemesterPicker(academic: academic),
                   const SizedBox(height: 24),
-                  _FocusHero(academic: academic),
+                  const _FocusHero(),
                   const SizedBox(height: 18),
                   if (academic.loadingDashboard &&
                       academic.context == null) ...[
@@ -108,14 +110,66 @@ class _OverviewScreenState extends State<OverviewScreen> {
   }
 }
 
-class _FocusHero extends StatelessWidget {
+class _AdvisorySemesterPicker extends StatelessWidget {
   final AcademicRepository academic;
 
-  const _FocusHero({required this.academic});
+  const _AdvisorySemesterPicker({required this.academic});
 
   @override
   Widget build(BuildContext context) {
-    final season = academic.context?.currentSeason ?? 'Winter 2024';
+    final current = academic.context?.currentSeason ?? 'Winter 2024';
+    final options = <String>{current, ...academic.seasons}.toList();
+    return DropdownButtonFormField<String>(
+      value: current,
+      isExpanded: true,
+      decoration: const InputDecoration(
+        labelText: 'Advisory semester',
+        helperText: 'Controls dashboard courses and the AI advisor context.',
+        prefixIcon: Icon(Icons.calendar_month_outlined),
+      ),
+      items: options
+          .map(
+            (season) => DropdownMenuItem(
+              value: season,
+              child: Text(
+                season,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          )
+          .toList(),
+      onChanged: academic.updatingAdvisorySemester
+          ? null
+          : (season) async {
+              if (season == null || season == current) return;
+              final changed = await academic.selectAdvisorySemester(season);
+              if (!context.mounted) return;
+              if (changed) {
+                context.read<AdvisorRepository>().clearLocal();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      academic.error ??
+                          'Now advising from $season. '
+                              'The previous advisor conversation was reset.',
+                    ),
+                  ),
+                );
+              } else if (academic.error != null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(academic.error!)),
+                );
+              }
+            },
+    );
+  }
+}
+
+class _FocusHero extends StatelessWidget {
+  const _FocusHero();
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(23),
       decoration: BoxDecoration(
@@ -136,12 +190,6 @@ class _FocusHero extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          GradientPill(
-            dark: true,
-            icon: Icons.calendar_today_rounded,
-            label: 'Advisory semester · $season',
-          ),
-          const SizedBox(height: 25),
           const Text(
             'Clarity before\nthe next move.',
             style: TextStyle(
@@ -154,7 +202,7 @@ class _FocusHero extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            'Historical portal data is standing in for your current semester.',
+            'The selected historical semester is used as your current advisory context.',
             style: TextStyle(
               color: Colors.white.withValues(alpha: .62),
               height: 1.45,

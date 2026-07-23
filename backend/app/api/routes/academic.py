@@ -43,7 +43,15 @@ def context(
     return student.academic.context()
 
 
-@router.post("/context", response_model=AdvisoryContextResponse)
+@router.post(
+    "/context",
+    response_model=AdvisoryContextResponse,
+    include_in_schema=False,
+)
+@router.post(
+    "/advisory-semester",
+    response_model=AdvisoryContextResponse,
+)
 async def update_context(
     payload: AdvisoryContextUpdate,
     student: StudentSession = Depends(get_student_session),

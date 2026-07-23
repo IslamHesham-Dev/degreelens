@@ -156,7 +156,7 @@ class AcademicRepository extends ChangeNotifier {
     try {
       context = AdvisoryContext.fromJson(
         await api.post(
-          '/v1/academic/context',
+          '/v1/academic/advisory-semester',
           body: {'current_season': season},
         ),
       );

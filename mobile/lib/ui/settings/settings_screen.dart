@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../app/theme.dart';
-import '../../core/environment.dart';
 import '../../data/repositories.dart';
 import '../core/lens_components.dart';
 
@@ -57,12 +56,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
               LensCard(
                 child: Column(
                   children: [
-                    _AdvisorySemesterSelector(
-                      academic: academic,
-                      fallbackSeason:
-                          auth.session?.currentSeason ?? 'Winter 2024',
-                    ),
-                    const Divider(height: 25),
                     _SettingRow(
                       icon: Icons.school_rounded,
                       title: 'Advisor transcript reference',
@@ -161,106 +154,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 icon: const Icon(Icons.logout_rounded),
                 label: const Text('Sign out and close portal session'),
               ),
-              const SizedBox(height: 22),
-              Text(
-                'API · ${Environment.apiBaseUrl}',
-                textAlign: TextAlign.center,
-                style: Theme.of(context)
-                    .textTheme
-                    .bodyMedium
-                    ?.copyWith(fontSize: 10),
-              ),
             ],
           ),
         ),
       ),
-    );
-  }
-}
-
-class _AdvisorySemesterSelector extends StatelessWidget {
-  final AcademicRepository academic;
-  final String fallbackSeason;
-
-  const _AdvisorySemesterSelector({
-    required this.academic,
-    required this.fallbackSeason,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final current = academic.context?.currentSeason ?? fallbackSeason;
-    final options = <String>{current, ...academic.seasons}.toList();
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Row(
-          children: [
-            Icon(
-              Icons.calendar_month_rounded,
-              color: LensColors.indigo,
-              size: 20,
-            ),
-            SizedBox(width: 9),
-            Text(
-              'Advisory semester',
-              style: TextStyle(
-                fontWeight: FontWeight.w700,
-                fontSize: 13,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        DropdownButtonFormField<String>(
-          value: current,
-          isExpanded: true,
-          decoration: const InputDecoration(
-            contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-          ),
-          items: options
-              .map(
-                (season) => DropdownMenuItem(
-                  value: season,
-                  child: Text(
-                    season,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              )
-              .toList(),
-          onChanged: academic.updatingAdvisorySemester
-              ? null
-              : (season) async {
-                  if (season == null || season == current) return;
-                  final changed = await academic.selectAdvisorySemester(season);
-                  if (!context.mounted) return;
-                  if (changed) {
-                    context.read<AdvisorRepository>().clearLocal();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(academic.error ??
-                            'Advisory semester changed to $season. '
-                                'The advisor conversation was reset.'),
-                      ),
-                    );
-                  } else if (academic.error != null) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(academic.error!)),
-                    );
-                  }
-                },
-        ),
-        const SizedBox(height: 9),
-        const Text(
-          'This controls the courses and grades treated as current by the advisor.',
-          style: TextStyle(
-            color: LensColors.muted,
-            fontSize: 11,
-            height: 1.4,
-          ),
-        ),
-      ],
     );
   }
 }
