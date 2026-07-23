@@ -8,6 +8,7 @@ from fastapi.concurrency import run_in_threadpool
 
 from app.schemas.academic import (
     AdvisoryContextResponse,
+    AdvisoryContextUpdate,
     CourseGradesResponse,
     CourseListResponse,
     GradeSeasonListResponse,
@@ -40,6 +41,25 @@ def context(
     student: StudentSession = Depends(get_student_session),
 ) -> dict[str, Any]:
     return student.academic.context()
+
+
+@router.post("/context", response_model=AdvisoryContextResponse)
+async def update_context(
+    payload: AdvisoryContextUpdate,
+    student: StudentSession = Depends(get_student_session),
+) -> dict[str, Any]:
+    def update() -> dict[str, Any]:
+        with student.chat_lock:
+            result = student.academic.select_current_season(
+                payload.current_season
+            )
+            # The system prompt contains the selected semester, so rebuild the
+            # agent and its transcript together to avoid stale context.
+            student.conversation.clear()
+            student.agent = None
+            return result
+
+    return await _portal_call(update)
 
 
 @router.get("/seasons", response_model=GradeSeasonListResponse)

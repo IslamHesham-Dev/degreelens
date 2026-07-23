@@ -10,6 +10,10 @@ class AdvisoryContextResponse(BaseModel):
     excluded_sources: list[str]
 
 
+class AdvisoryContextUpdate(BaseModel):
+    current_season: str = Field(min_length=1, max_length=80)
+
+
 class CourseListResponse(BaseModel):
     season: str
     courses: list[str]

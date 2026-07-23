@@ -169,6 +169,144 @@ class TranscriptCourse {
         hours: json['hours'] as String? ?? '',
         group: json['group'] as String? ?? '',
       );
+
+  double? get numericGpa {
+    final match = RegExp(r'-?\d+(?:[.,]\d+)?').firstMatch(numeric);
+    if (match == null) return null;
+    return double.tryParse(match.group(0)!.replaceAll(',', '.'));
+  }
+
+  GradeBand? get mappedGrade => GiuGradeScale.forGpa(numericGpa);
+
+  String get displayGrade =>
+      grade.isNotEmpty ? grade : mappedGrade?.letter ?? '';
+
+  String get gpaWithGrade {
+    if (numeric.isEmpty) return displayGrade;
+    return displayGrade.isEmpty ? numeric : '$numeric ($displayGrade)';
+  }
+}
+
+class GradeBand {
+  final double minimum;
+  final double maximum;
+  final String letter;
+  final String gpaRange;
+
+  const GradeBand({
+    required this.minimum,
+    required this.maximum,
+    required this.letter,
+    required this.gpaRange,
+  });
+
+  String get percentageRange =>
+      '${minimum.toStringAsFixed(minimum == minimum.roundToDouble() ? 0 : 1)}'
+      '–'
+      '${maximum.toStringAsFixed(maximum == maximum.roundToDouble() ? 0 : 1)}';
+}
+
+abstract final class GiuGradeScale {
+  static const bands = <GradeBand>[
+    GradeBand(
+      minimum: 94,
+      maximum: 100,
+      letter: 'A+',
+      gpaRange: '0.70–0.99',
+    ),
+    GradeBand(
+      minimum: 90,
+      maximum: 93.9,
+      letter: 'A',
+      gpaRange: '1.00–1.29',
+    ),
+    GradeBand(
+      minimum: 86,
+      maximum: 89.9,
+      letter: 'A-',
+      gpaRange: '1.30–1.69',
+    ),
+    GradeBand(
+      minimum: 82,
+      maximum: 85.9,
+      letter: 'B+',
+      gpaRange: '1.70–1.99',
+    ),
+    GradeBand(
+      minimum: 78,
+      maximum: 81.9,
+      letter: 'B',
+      gpaRange: '2.00–2.29',
+    ),
+    GradeBand(
+      minimum: 74,
+      maximum: 77.9,
+      letter: 'B-',
+      gpaRange: '2.30–2.69',
+    ),
+    GradeBand(
+      minimum: 70,
+      maximum: 73.9,
+      letter: 'C+',
+      gpaRange: '2.70–2.99',
+    ),
+    GradeBand(
+      minimum: 65,
+      maximum: 69.9,
+      letter: 'C',
+      gpaRange: '3.00–3.29',
+    ),
+    GradeBand(
+      minimum: 60,
+      maximum: 64.9,
+      letter: 'C-',
+      gpaRange: '3.30–3.69',
+    ),
+    GradeBand(
+      minimum: 55,
+      maximum: 59.9,
+      letter: 'D+',
+      gpaRange: '3.70–3.99',
+    ),
+    GradeBand(
+      minimum: 50,
+      maximum: 54.9,
+      letter: 'D',
+      gpaRange: '4.00–4.99',
+    ),
+    GradeBand(
+      minimum: 0,
+      maximum: 49.9,
+      letter: 'F',
+      gpaRange: '5.00–6.00',
+    ),
+  ];
+
+  static GradeBand? forPercentage(double? percentage) {
+    if (percentage == null || percentage < 0 || percentage > 100) return null;
+    for (final band in bands) {
+      if (percentage >= band.minimum) {
+        return band;
+      }
+    }
+    return null;
+  }
+
+  static GradeBand? forGpa(double? gpa) {
+    if (gpa == null || gpa < .7 || gpa > 6) return null;
+    for (final band in bands) {
+      final bounds = band.gpaRange.split('–');
+      final minimum = double.tryParse(bounds.first);
+      final maximum = double.tryParse(bounds.last);
+      if (minimum != null &&
+          maximum != null &&
+          gpa >= minimum &&
+          gpa <= maximum) {
+        return band;
+      }
+    }
+    return null;
+  }
 }
 
 class Transcript {
@@ -197,6 +335,20 @@ class Transcript {
       grouped.putIfAbsent(course.semester, () => []).add(course);
     }
     return grouped;
+  }
+
+  GradeBand? get cumulativeGrade {
+    final match = RegExp(r'-?\d+(?:[.,]\d+)?').firstMatch(cumulativeGpa ?? '');
+    if (match == null) return null;
+    final value = double.tryParse(match.group(0)!.replaceAll(',', '.'));
+    return GiuGradeScale.forGpa(value);
+  }
+
+  String get cumulativeGpaWithGrade {
+    final value = cumulativeGpa;
+    if (value == null || value.isEmpty) return 'Not displayed';
+    final letter = cumulativeGrade?.letter;
+    return letter == null ? value : '$value ($letter)';
   }
 }
 

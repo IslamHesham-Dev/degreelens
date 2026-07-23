@@ -31,12 +31,28 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
       child: ListView(
         padding: const EdgeInsets.fromLTRB(22, 24, 22, 120),
         children: [
-          PageHeading(
-            eyebrow: transcript?.year ?? '2024-2025',
+          const PageHeading(
+            eyebrow: 'Academic record',
             title: 'Transcript',
             subtitle:
-                'A year-by-year record, translated into a clearer academic story.',
+                'Select an academic year to inspect its courses and results.',
           ),
+          const SizedBox(height: 18),
+          _TranscriptYearPicker(academic: academic),
+          if (academic.loadingTranscript) ...[
+            const SizedBox(height: 10),
+            const LinearProgressIndicator(minHeight: 2),
+          ],
+          if (academic.error != null && transcript != null) ...[
+            const SizedBox(height: 12),
+            Text(
+              academic.error!,
+              style: const TextStyle(
+                color: LensColors.rose,
+                fontSize: 12,
+              ),
+            ),
+          ],
           const SizedBox(height: 22),
           if (academic.loadingDashboard && transcript == null)
             const LensLoading(label: 'Loading transcript year…')
@@ -47,6 +63,8 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
             )
           else if (transcript != null) ...[
             _GpaHero(transcript: transcript),
+            const SizedBox(height: 14),
+            const _GradeScaleCard(),
             const SizedBox(height: 28),
             ...transcript.bySemester.entries.map(
               (entry) => _SemesterSection(
@@ -56,6 +74,114 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
             ),
           ],
         ],
+      ),
+    );
+  }
+}
+
+class _TranscriptYearPicker extends StatelessWidget {
+  final AcademicRepository academic;
+
+  const _TranscriptYearPicker({required this.academic});
+
+  @override
+  Widget build(BuildContext context) {
+    final current = academic.selectedTranscriptYear ??
+        academic.transcript?.year ??
+        academic.context?.transcriptYear;
+    final years = <String>{
+      if (current != null) current,
+      ...academic.transcriptYears,
+    }.toList();
+
+    return DropdownButtonFormField<String>(
+      value: current,
+      isExpanded: true,
+      decoration: const InputDecoration(
+        labelText: 'Academic year',
+        prefixIcon: Icon(Icons.calendar_today_outlined),
+      ),
+      items: years
+          .map(
+            (year) => DropdownMenuItem(
+              value: year,
+              child: Text(year),
+            ),
+          )
+          .toList(),
+      onChanged: academic.loadingTranscript
+          ? null
+          : (year) {
+              if (year != null) academic.loadTranscriptYear(year);
+            },
+    );
+  }
+}
+
+class _GradeScaleCard extends StatelessWidget {
+  const _GradeScaleCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return LensCard(
+      padding: EdgeInsets.zero,
+      child: ExpansionTile(
+        shape: const Border(),
+        collapsedShape: const Border(),
+        leading: const Icon(
+          Icons.rule_rounded,
+          color: LensColors.indigo,
+        ),
+        title: const Text(
+          'Grading scale',
+          style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+        ),
+        subtitle: const Text(
+          'Percentage → letter grade → GPA band',
+          style: TextStyle(fontSize: 11.5),
+        ),
+        children: GiuGradeScale.bands
+            .map(
+              (band) => Padding(
+                padding: const EdgeInsets.fromLTRB(20, 7, 20, 7),
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: 76,
+                      child: Text(
+                        '${band.percentageRange}%',
+                        style: const TextStyle(
+                          color: LensColors.muted,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      width: 42,
+                      child: Text(
+                        band.letter,
+                        style: const TextStyle(
+                          color: LensColors.ink,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Text(
+                        'GPA ${band.gpaRange}',
+                        textAlign: TextAlign.end,
+                        style: const TextStyle(
+                          color: LensColors.muted,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
+            .toList(),
       ),
     );
   }
@@ -102,7 +228,7 @@ class _GpaHero extends StatelessWidget {
                 ),
                 const SizedBox(height: 7),
                 Text(
-                  transcript.cumulativeGpa ?? 'Not displayed',
+                  transcript.cumulativeGpaWithGrade,
                   style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w900,
@@ -171,6 +297,8 @@ class _SemesterSection extends StatelessWidget {
             child: Column(
               children: courses.asMap().entries.map((entry) {
                 final course = entry.value;
+                final displayedGrade =
+                    course.displayGrade.isEmpty ? '—' : course.displayGrade;
                 return Column(
                   children: [
                     Padding(
@@ -182,14 +310,14 @@ class _SemesterSection extends StatelessWidget {
                             height: 43,
                             alignment: Alignment.center,
                             decoration: BoxDecoration(
-                              color: _gradeColor(course.grade)
+                              color: _gradeColor(displayedGrade)
                                   .withValues(alpha: .1),
                               borderRadius: BorderRadius.circular(14),
                             ),
                             child: Text(
-                              course.grade.isEmpty ? '—' : course.grade,
+                              displayedGrade,
                               style: TextStyle(
-                                color: _gradeColor(course.grade),
+                                color: _gradeColor(displayedGrade),
                                 fontWeight: FontWeight.w900,
                               ),
                             ),
@@ -219,9 +347,9 @@ class _SemesterSection extends StatelessWidget {
                           ),
                           if (course.numeric.isNotEmpty)
                             Text(
-                              course.numeric,
+                              course.gpaWithGrade,
                               style: const TextStyle(
-                                color: LensColors.muted,
+                                color: LensColors.ink,
                                 fontSize: 12,
                                 fontWeight: FontWeight.w700,
                               ),

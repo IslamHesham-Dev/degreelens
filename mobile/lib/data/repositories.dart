@@ -79,10 +79,15 @@ class AcademicRepository extends ChangeNotifier {
   final ApiClient api;
 
   AdvisoryContext? context;
+  List<String> seasons = const [];
+  List<String> transcriptYears = const [];
+  String? selectedTranscriptYear;
   List<CourseSummary> courses = const [];
   Transcript? transcript;
   final Map<String, CourseGrades> grades = {};
   bool loadingDashboard = false;
+  bool loadingTranscript = false;
+  bool updatingAdvisorySemester = false;
   final Set<String> loadingCourses = {};
   String? error;
 
@@ -90,7 +95,12 @@ class AcademicRepository extends ChangeNotifier {
 
   Future<void> loadDashboard({bool force = false}) async {
     if (loadingDashboard) return;
-    if (!force && context != null && courses.isNotEmpty && transcript != null) {
+    if (!force &&
+        context != null &&
+        seasons.isNotEmpty &&
+        transcriptYears.isNotEmpty &&
+        courses.isNotEmpty &&
+        transcript != null) {
       return;
     }
     loadingDashboard = true;
@@ -100,12 +110,31 @@ class AcademicRepository extends ChangeNotifier {
       context = AdvisoryContext.fromJson(
         await api.get('/v1/academic/context'),
       );
-      final courseJson = await api.get('/v1/academic/courses');
+      final seasonJson = await api.get('/v1/academic/seasons');
+      seasons = List<String>.from(
+        seasonJson['seasons'] as List? ?? const [],
+      );
+      final yearJson = await api.get('/v1/academic/transcript-years');
+      transcriptYears = List<String>.from(
+        yearJson['years'] as List? ?? const [],
+      );
+      selectedTranscriptYear ??= context!.transcriptYear;
+      if (!transcriptYears.contains(selectedTranscriptYear) &&
+          transcriptYears.isNotEmpty) {
+        selectedTranscriptYear = transcriptYears.first;
+      }
+      final courseJson = await api.get(
+        '/v1/academic/courses',
+        query: {'season': context!.currentSeason},
+      );
       courses = List<String>.from(courseJson['courses'] as List? ?? const [])
           .map(CourseSummary.fromLabel)
           .toList();
       transcript = Transcript.fromJson(
-        await api.get('/v1/academic/transcript'),
+        await api.get(
+          '/v1/academic/transcript',
+          query: {'year': selectedTranscriptYear},
+        ),
       );
     } on ApiException catch (exception) {
       error = exception.message;
@@ -113,6 +142,80 @@ class AcademicRepository extends ChangeNotifier {
       error = 'Academic data could not be loaded.';
     } finally {
       loadingDashboard = false;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> selectAdvisorySemester(String season) async {
+    if (updatingAdvisorySemester) return false;
+    if (context?.currentSeason == season) return true;
+    var contextChanged = false;
+    updatingAdvisorySemester = true;
+    error = null;
+    notifyListeners();
+    try {
+      context = AdvisoryContext.fromJson(
+        await api.post(
+          '/v1/academic/context',
+          body: {'current_season': season},
+        ),
+      );
+      contextChanged = true;
+      courses = const [];
+      grades.clear();
+      final courseJson = await api.get(
+        '/v1/academic/courses',
+        query: {'season': context!.currentSeason},
+      );
+      courses = List<String>.from(courseJson['courses'] as List? ?? const [])
+          .map(CourseSummary.fromLabel)
+          .toList();
+      return true;
+    } on ApiException catch (exception) {
+      error = exception.message;
+      return contextChanged;
+    } catch (_) {
+      error = contextChanged
+          ? 'The semester changed, but its courses could not be loaded yet.'
+          : 'The advisory semester could not be changed.';
+      return contextChanged;
+    } finally {
+      updatingAdvisorySemester = false;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> loadTranscriptYear(String year) async {
+    if (loadingTranscript) return false;
+    if (transcript?.year == year) {
+      selectedTranscriptYear = year;
+      notifyListeners();
+      return true;
+    }
+    final previousYear = selectedTranscriptYear;
+    loadingTranscript = true;
+    selectedTranscriptYear = year;
+    error = null;
+    notifyListeners();
+    try {
+      transcript = Transcript.fromJson(
+        await api.get(
+          '/v1/academic/transcript',
+          query: {'year': year},
+        ),
+      );
+      selectedTranscriptYear = transcript!.year;
+      return true;
+    } on ApiException catch (exception) {
+      selectedTranscriptYear = previousYear;
+      error = exception.message;
+      return false;
+    } catch (_) {
+      selectedTranscriptYear = previousYear;
+      error = 'Transcript year $year could not be loaded.';
+      return false;
+    } finally {
+      loadingTranscript = false;
       notifyListeners();
     }
   }
@@ -151,6 +254,9 @@ class AcademicRepository extends ChangeNotifier {
   Future<void> clearPortalCache() async {
     await api.post('/v1/academic/cache/clear');
     context = null;
+    seasons = const [];
+    transcriptYears = const [];
+    selectedTranscriptYear = null;
     courses = const [];
     transcript = null;
     grades.clear();
@@ -159,6 +265,9 @@ class AcademicRepository extends ChangeNotifier {
 
   void clearLocal() {
     context = null;
+    seasons = const [];
+    transcriptYears = const [];
+    selectedTranscriptYear = null;
     courses = const [];
     transcript = null;
     grades.clear();
@@ -221,5 +330,11 @@ class AdvisorRepository extends ChangeNotifier {
       error = null;
       notifyListeners();
     }
+  }
+
+  void clearLocal() {
+    messages.clear();
+    error = null;
+    notifyListeners();
   }
 }

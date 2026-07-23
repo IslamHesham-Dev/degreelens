@@ -15,6 +15,7 @@ Authorization: Bearer <opaque-session-token>
 ## Academic data
 
 - `GET /v1/academic/context`
+- `POST /v1/academic/context` with `{"current_season": "Winter 2024"}`
 - `GET /v1/academic/seasons`
 - `GET /v1/academic/courses?season=Winter%202024`
 - `GET /v1/academic/course-grades?course=ICS501`

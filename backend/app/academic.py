@@ -83,6 +83,14 @@ class AcademicService:
     def list_grade_seasons(self) -> list[str]:
         return [label for _value, label in self._seasons()]
 
+    def select_current_season(self, season: str) -> dict[str, Any]:
+        """Validate and select the season used by advisory tools."""
+        _value, season_label = self._pick(
+            self._seasons(), season, "season"
+        )
+        self.current_season = season_label
+        return self.context()
+
     def list_courses(self, season: str | None = None) -> dict[str, Any]:
         requested = season or self.current_season
         season_value, season_label = self._pick(
