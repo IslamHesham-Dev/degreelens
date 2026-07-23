@@ -11,7 +11,7 @@ jobs:
     env:
       COCOAPODS_DISABLE_STATS: "true"
       LANG: en_US.UTF-8
-      API_BASE_URL: https://degreelens-api.onrender.com
+      API_BASE_URL: https://degreelens.onrender.com
 
     defaults:
       run:
