@@ -1,4 +1,4 @@
-package com.degreelens.app
+package com.careerloop.app
 
 import io.flutter.embedding.android.FlutterActivity
 

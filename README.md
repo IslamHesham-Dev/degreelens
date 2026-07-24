@@ -1,10 +1,10 @@
-# DegreeLens
+# CareerLoop
 
-**Your academic data, explained.**
+**Academic insight. Career momentum.**
 
-DegreeLens is a private, read-only academic advisory prototype for GIU portal
-data. It combines a Flutter mobile experience with a FastAPI/LangChain backend.
-CMS is intentionally not connected.
+CareerLoop is a private academic and career advisory prototype. It currently
+combines GIU portal records, a Flutter mobile experience, and a
+FastAPI/LangChain backend. A live CMS connector will be integrated separately.
 
 ## Repository
 
@@ -73,8 +73,8 @@ to a deployed HTTPS backend.
 The backend is container-ready:
 
 ```powershell
-docker build -t degreelens-api .\backend
-docker run --rm -p 8000:8000 --env-file .\backend\.env degreelens-api
+docker build -t careerloop-api .\backend
+docker run --rm -p 8000:8000 --env-file .\backend\.env careerloop-api
 ```
 
 Use one backend worker while sessions are stored in memory. Before horizontal
@@ -83,6 +83,7 @@ strict per-student cache separation.
 
 ## Data limitations
 
-DegreeLens can interpret portal grades and transcript records. It cannot verify
-CMS content, attendance, deadlines, prerequisites, schedules, degree rules, or
-official graduation eligibility unless the student supplies that information.
+CareerLoop can interpret portal grades and transcript records. Until the CMS
+connector is configured, it cannot verify course content, attendance, deadlines,
+prerequisites, schedules, degree rules, or official graduation eligibility
+unless the student supplies that information.

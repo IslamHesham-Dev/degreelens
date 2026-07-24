@@ -48,6 +48,12 @@ def build_agent(student: StudentSession, settings: Settings):
         return _safe(academic.transcript)
 
     @tool
+    def get_full_transcript() -> dict:
+        """Get every available transcript record in the student's four-year
+        enrollment window. Use it for degree-wide academic or career advice."""
+        return _safe(academic.full_transcript)
+
+    @tool
     def list_grade_seasons() -> list[str] | dict:
         """List all GIU seasons that expose detailed grades."""
         return _safe(academic.list_grade_seasons)
@@ -86,6 +92,7 @@ def build_agent(student: StudentSession, settings: Settings):
         list_advisory_courses,
         get_advisory_course_grades,
         get_advisory_transcript,
+        get_full_transcript,
         list_grade_seasons,
         list_courses_in_season,
         get_course_grades,
@@ -93,11 +100,16 @@ def build_agent(student: StudentSession, settings: Settings):
         find_transcript_course,
     ]
     prompt = (
-        "You are DegreeLens, a read-only academic advisor and study-planning "
+        "You are CareerLoop, a read-only academic advisor and study-planning "
         "assistant for a GIU student. Use portal tools for every factual claim "
         "about the student's records. "
         f"Treat {academic.current_season} as the simulated current semester and "
-        f"{academic.advisory_year} as its advisory transcript year. When the "
+        f"{academic.advisory_year} as its advisory transcript year. The student "
+        f"enrolled in {academic.enrollment_year}; their four-year transcript "
+        f"window is {', '.join(academic.transcript_window_years)}. Use "
+        "get_full_transcript for questions about their whole degree, overall "
+        "academic history, long-term strengths, or career recommendations based "
+        "on all completed courses. When the "
         "student says current semester or my courses, use the advisory tools. "
         "For detailed grades, identify a season, resolve the course, then fetch "
         "its assessment rows. Clearly distinguish earned marks from maximum marks. "
@@ -109,7 +121,7 @@ def build_agent(student: StudentSession, settings: Settings):
         "(4.00-4.99), and 0-49.9 F (5.00-6.00). A band does not justify "
         "inventing an exact GPA. "
         "Summarize strengths, weak assessments, and practical study priorities. "
-        "CMS is unavailable and out of scope. You do not know course content, "
+        "CMS tools are not configured in this build. You do not know course content, "
         "deadlines, attendance, prerequisites, schedules, or graduation rules "
         "unless the student supplies them. Separate portal facts from recommendations "
         "and never present advice as official university policy. The portal is slow, "
@@ -140,12 +152,14 @@ def tool_events(messages: list[Any]) -> tuple[list[dict[str, str]], list[str]]:
         "list_advisory_courses": "GIU detailed-grade seasons",
         "get_advisory_course_grades": "GIU detailed grades",
         "get_advisory_transcript": "GIU transcript",
+        "get_full_transcript": "GIU transcript",
         "list_grade_seasons": "GIU detailed-grade seasons",
         "list_courses_in_season": "GIU detailed-grade seasons",
         "get_course_grades": "GIU detailed grades",
         "get_transcript": "GIU transcript",
         "find_transcript_course": "GIU transcript",
     }
+    seen_events: set[tuple[str, str]] = set()
     for message in messages:
         if getattr(message, "type", "") != "tool":
             continue
@@ -159,7 +173,10 @@ def tool_events(messages: list[Any]) -> tuple[list[dict[str, str]], list[str]]:
                 parsed = None
             if isinstance(parsed, dict) and "error" in parsed:
                 status = "error"
-        events.append({"name": name, "status": status})
+        event_key = (name, status)
+        if event_key not in seen_events:
+            events.append({"name": name, "status": status})
+            seen_events.add(event_key)
         source = source_map.get(name)
         if source and source not in sources:
             sources.append(source)

@@ -13,6 +13,7 @@ from app.schemas.academic import (
     CourseListResponse,
     GradeSeasonListResponse,
     TranscriptResponse,
+    TranscriptWindowResponse,
     TranscriptYearListResponse,
 )
 from app.sessions.models import StudentSession
@@ -111,6 +112,13 @@ async def transcript(
     student: StudentSession = Depends(get_student_session),
 ) -> dict[str, Any]:
     return await _portal_call(lambda: student.academic.transcript(year))
+
+
+@router.get("/transcript-window", response_model=TranscriptWindowResponse)
+async def transcript_window(
+    student: StudentSession = Depends(get_student_session),
+) -> dict[str, Any]:
+    return await _portal_call(student.academic.full_transcript)
 
 
 @router.post("/cache/clear")

@@ -1,17 +1,24 @@
 class SessionInfo {
   final String currentSeason;
   final String advisoryYear;
+  final int enrollmentYear;
+  final List<String> transcriptYears;
   final int expiresInSeconds;
 
   const SessionInfo({
     required this.currentSeason,
     required this.advisoryYear,
+    required this.enrollmentYear,
+    required this.transcriptYears,
     required this.expiresInSeconds,
   });
 
   factory SessionInfo.fromJson(Map<String, dynamic> json) => SessionInfo(
         currentSeason: json['current_season'] as String? ?? 'Winter 2024',
         advisoryYear: json['advisory_year'] as String? ?? '2024-2025',
+        enrollmentYear: json['enrollment_year'] as int? ?? 2021,
+        transcriptYears:
+            List<String>.from(json['transcript_years'] as List? ?? const []),
         expiresInSeconds: json['expires_in_seconds'] as int? ?? 0,
       );
 }
@@ -19,12 +26,16 @@ class SessionInfo {
 class AdvisoryContext {
   final String currentSeason;
   final String transcriptYear;
+  final int enrollmentYear;
+  final List<String> transcriptYears;
   final List<String> dataSources;
   final List<String> excludedSources;
 
   const AdvisoryContext({
     required this.currentSeason,
     required this.transcriptYear,
+    required this.enrollmentYear,
+    required this.transcriptYears,
     required this.dataSources,
     required this.excludedSources,
   });
@@ -34,6 +45,9 @@ class AdvisoryContext {
         currentSeason:
             json['simulated_current_season'] as String? ?? 'Winter 2024',
         transcriptYear: json['transcript_year'] as String? ?? '2024-2025',
+        enrollmentYear: json['enrollment_year'] as int? ?? 2021,
+        transcriptYears:
+            List<String>.from(json['transcript_years'] as List? ?? const []),
         dataSources:
             List<String>.from(json['data_sources'] as List? ?? const []),
         excludedSources:

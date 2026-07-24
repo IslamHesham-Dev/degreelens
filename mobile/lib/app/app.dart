@@ -14,14 +14,14 @@ import '../ui/settings/settings_screen.dart';
 import '../ui/transcript/transcript_screen.dart';
 import 'theme.dart';
 
-class DegreeLensApp extends StatefulWidget {
-  const DegreeLensApp({super.key});
+class CareerLoopApp extends StatefulWidget {
+  const CareerLoopApp({super.key});
 
   @override
-  State<DegreeLensApp> createState() => _DegreeLensAppState();
+  State<CareerLoopApp> createState() => _CareerLoopAppState();
 }
 
-class _DegreeLensAppState extends State<DegreeLensApp> {
+class _CareerLoopAppState extends State<CareerLoopApp> {
   late final GoRouter _router;
 
   @override
@@ -111,9 +111,9 @@ class _DegreeLensAppState extends State<DegreeLensApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      title: 'DegreeLens',
+      title: 'CareerLoop',
       debugShowCheckedModeBanner: false,
-      theme: DegreeLensTheme.light(),
+      theme: CareerLoopTheme.light(),
       routerConfig: _router,
     );
   }

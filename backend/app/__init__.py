@@ -1,1 +1,1 @@
-"""DegreeLens backend application."""
+"""CareerLoop backend application."""

@@ -28,7 +28,7 @@ Future<void> main() async {
         ChangeNotifierProvider.value(value: academic),
         ChangeNotifierProvider.value(value: advisor),
       ],
-      child: const DegreeLensApp(),
+      child: const CareerLoopApp(),
     ),
   );
 }

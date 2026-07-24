@@ -14,7 +14,7 @@ abstract final class LensColors {
   static const line = Color(0xFFE4E7F0);
 }
 
-abstract final class DegreeLensTheme {
+abstract final class CareerLoopTheme {
   static ThemeData light() {
     final scheme = ColorScheme.fromSeed(
       seedColor: LensColors.indigo,

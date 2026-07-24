@@ -16,6 +16,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _username = TextEditingController();
   final _password = TextEditingController();
+  int? _enrollmentYear;
   bool _obscure = true;
 
   @override
@@ -29,7 +30,11 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!_formKey.currentState!.validate()) return;
     FocusScope.of(context).unfocus();
     final auth = context.read<AuthRepository>();
-    final signedIn = await auth.signIn(_username.text, _password.text);
+    final signedIn = await auth.signIn(
+      _username.text,
+      _password.text,
+      _enrollmentYear!,
+    );
     if (signedIn && mounted) {
       context.read<AcademicRepository>().loadDashboard();
     }
@@ -58,7 +63,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       children: [
                         const Align(
                           alignment: Alignment.centerLeft,
-                          child: LensLogo(size: 42),
+                          child: LensLogo(size: 52),
                         ),
                         const SizedBox(height: 48),
                         Text(
@@ -122,6 +127,36 @@ class _LoginScreenState extends State<LoginScreen> {
                                         value == null || value.trim().isEmpty
                                             ? 'Enter your GIU username'
                                             : null,
+                                  ),
+                                  const SizedBox(height: 14),
+                                  DropdownButtonFormField<int>(
+                                    value: _enrollmentYear,
+                                    isExpanded: true,
+                                    decoration: const InputDecoration(
+                                      labelText: 'Enrollment year',
+                                      helperText:
+                                          'Loads four academic transcript years from this date.',
+                                      prefixIcon: Icon(
+                                        Icons.school_outlined,
+                                      ),
+                                    ),
+                                    items: [
+                                      for (var year = DateTime.now().year;
+                                          year >= 2000;
+                                          year--)
+                                        DropdownMenuItem(
+                                          value: year,
+                                          child: Text('$year'),
+                                        ),
+                                    ],
+                                    onChanged: auth.isBusy
+                                        ? null
+                                        : (year) => setState(
+                                              () => _enrollmentYear = year,
+                                            ),
+                                    validator: (value) => value == null
+                                        ? 'Select the year you enrolled'
+                                        : null,
                                   ),
                                   const SizedBox(height: 14),
                                   TextFormField(
@@ -223,7 +258,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             SizedBox(width: 10),
                             Expanded(
                               child: Text(
-                                'Your credentials are used only to start a short-lived, read-only portal session. DegreeLens does not store your password.',
+                                'Your credentials are used only to start a short-lived, read-only portal session. CareerLoop does not store your password.',
                                 style: TextStyle(
                                   color: LensColors.muted,
                                   fontSize: 12.5,

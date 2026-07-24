@@ -89,16 +89,14 @@ class _OverviewScreenState extends State<OverviewScreen> {
                     const SizedBox(height: 28),
                     _SectionTitle(
                       title: 'Current courses',
-                      action: 'See all',
-                      onTap: () => context.go('/courses'),
                     ),
                     const SizedBox(height: 12),
-                    ...academic.courses.take(3).map(
-                          (course) => Padding(
-                            padding: const EdgeInsets.only(bottom: 11),
-                            child: _CompactCourseCard(course: course),
-                          ),
-                        ),
+                    ...academic.courses.map(
+                      (course) => Padding(
+                        padding: const EdgeInsets.only(bottom: 11),
+                        child: _CompactCourseCard(course: course),
+                      ),
+                    ),
                   ],
                 ],
               ),
@@ -254,7 +252,7 @@ class _Metrics extends StatelessWidget {
           Expanded(
             child: _Metric(
               icon: Icons.bubble_chart_rounded,
-              value: academic.transcript?.cumulativeGpa ?? '—',
+              value: academic.transcript?.cumulativeGpaWithGrade ?? '—',
               label: 'Cumulative GPA',
               color: LensColors.aqua,
             ),
@@ -305,13 +303,13 @@ class _Metric extends StatelessWidget {
 
 class _SectionTitle extends StatelessWidget {
   final String title;
-  final String action;
-  final VoidCallback onTap;
+  final String? action;
+  final VoidCallback? onTap;
 
   const _SectionTitle({
     required this.title,
-    required this.action,
-    required this.onTap,
+    this.action,
+    this.onTap,
   });
 
   @override
@@ -321,7 +319,8 @@ class _SectionTitle extends StatelessWidget {
         Expanded(
           child: Text(title, style: Theme.of(context).textTheme.titleLarge),
         ),
-        TextButton(onPressed: onTap, child: Text(action)),
+        if (action != null && onTap != null)
+          TextButton(onPressed: onTap, child: Text(action!)),
       ],
     );
   }

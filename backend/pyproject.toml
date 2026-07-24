@@ -1,7 +1,7 @@
 [project]
-name = "degreelens-api"
+name = "careerloop-api"
 version = "0.1.0"
-description = "Private GIU academic advisory backend for DegreeLens."
+description = "Private academic and career advisory backend for CareerLoop."
 requires-python = ">=3.11,<3.14"
 dependencies = [
     "beautifulsoup4>=4.12",

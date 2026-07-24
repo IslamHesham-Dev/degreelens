@@ -17,7 +17,7 @@ class Settings(BaseSettings):
         env_prefix="DEGREELENS_",
     )
 
-    app_name: str = "DegreeLens API"
+    app_name: str = "CareerLoop API"
     environment: str = "development"
     debug: bool = False
     anthropic_api_key: SecretStr = Field(

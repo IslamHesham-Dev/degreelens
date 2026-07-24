@@ -6,6 +6,8 @@ from pydantic import BaseModel, Field
 class AdvisoryContextResponse(BaseModel):
     simulated_current_season: str
     transcript_year: str
+    enrollment_year: int
+    transcript_years: list[str]
     data_sources: list[str]
     excluded_sources: list[str]
 
@@ -48,12 +50,24 @@ class TranscriptResponse(BaseModel):
     courses: list[TranscriptCourseResponse]
 
 
+class TranscriptWindowCourseResponse(TranscriptCourseResponse):
+    academic_year: str
+
+
 class GradeSeasonListResponse(BaseModel):
     seasons: list[str]
 
 
 class TranscriptYearListResponse(BaseModel):
     years: list[str]
+
+
+class TranscriptWindowResponse(BaseModel):
+    enrollment_year: int
+    requested_years: list[str]
+    loaded_years: list[str]
+    cumulative_gpa: str | None
+    courses: list[TranscriptWindowCourseResponse]
 
 
 class CourseQuery(BaseModel):

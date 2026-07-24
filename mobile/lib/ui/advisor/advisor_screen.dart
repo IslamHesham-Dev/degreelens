@@ -360,12 +360,13 @@ class _MessageBubble extends StatelessWidget {
                 tableCellsPadding: const EdgeInsets.all(8),
               ),
             ),
-            if (message.tools.isNotEmpty) ...[
+            if (message.tools.any((tool) => tool.status == 'error')) ...[
               const SizedBox(height: 14),
               Wrap(
                 spacing: 7,
                 runSpacing: 7,
                 children: message.tools
+                    .where((tool) => tool.status == 'error')
                     .map(
                       (tool) => GradientPill(
                         label: _friendlyToolName(tool.name),

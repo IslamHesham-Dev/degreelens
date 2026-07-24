@@ -32,7 +32,11 @@ class AuthRepository extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<bool> signIn(String username, String password) async {
+  Future<bool> signIn(
+    String username,
+    String password,
+    int enrollmentYear,
+  ) async {
     isBusy = true;
     error = null;
     notifyListeners();
@@ -40,7 +44,11 @@ class AuthRepository extends ChangeNotifier {
       final json = await api.post(
         '/v1/auth/login',
         authenticated: false,
-        body: {'username': username.trim(), 'password': password},
+        body: {
+          'username': username.trim(),
+          'password': password,
+          'enrollment_year': enrollmentYear,
+        },
       );
       final token = json['access_token'] as String;
       api.accessToken = token;
@@ -53,7 +61,7 @@ class AuthRepository extends ChangeNotifier {
       return false;
     } catch (_) {
       error =
-          'Cannot reach DegreeLens. Check the backend address and try again.';
+          'Cannot reach CareerLoop. Check the backend address and try again.';
       return false;
     } finally {
       isBusy = false;
@@ -172,7 +180,12 @@ class AcademicRepository extends ChangeNotifier {
           .toList();
       return true;
     } on ApiException catch (exception) {
-      error = exception.message;
+      if (exception.statusCode == 404 || exception.statusCode == 405) {
+        error = 'The deployed backend is an older version. Redeploy the '
+            'CareerLoop API, then try changing the semester again.';
+      } else {
+        error = exception.message;
+      }
       return contextChanged;
     } catch (_) {
       error = contextChanged

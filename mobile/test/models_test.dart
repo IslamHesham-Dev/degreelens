@@ -1,4 +1,4 @@
-import 'package:degreelens/data/models.dart';
+import 'package:careerloop/data/models.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

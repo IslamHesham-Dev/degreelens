@@ -8,7 +8,8 @@ Authorization: Bearer <opaque-session-token>
 
 ## Authentication
 
-- `POST /v1/auth/login`
+- `POST /v1/auth/login` with
+  `{"username": "...", "password": "...", "enrollment_year": 2021}`
 - `GET /v1/auth/session`
 - `POST /v1/auth/logout`
 
@@ -22,6 +23,8 @@ Authorization: Bearer <opaque-session-token>
 - `GET /v1/academic/course-grades?course=ICS501`
 - `GET /v1/academic/transcript-years`
 - `GET /v1/academic/transcript?year=2024-2025`
+- `GET /v1/academic/transcript-window` (the four academic years beginning
+  with the login enrollment year)
 - `POST /v1/academic/cache/clear`
 
 ## Advisor

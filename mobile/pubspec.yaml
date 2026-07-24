@@ -1,5 +1,5 @@
-name: degreelens
-description: "DegreeLens — Your academic data, explained."
+name: careerloop
+description: "CareerLoop — Academic insight. Career momentum."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -51,6 +51,7 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^5.0.0
+  flutter_launcher_icons: ^0.14.3
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -62,6 +63,16 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+
+  assets:
+    - assets/branding/careerloop-icon.png
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/branding/careerloop-icon.png"
+  remove_alpha_ios: true
+  min_sdk_android: 21
 
   # To add assets to your application, add an assets section, like this:
   # assets:

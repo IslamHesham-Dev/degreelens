@@ -6,7 +6,6 @@ from fastapi.concurrency import run_in_threadpool
 
 from guc_portal import GucPortal
 
-from app.config import get_settings
 from app.dependencies import get_access_token, get_student_session
 from app.schemas.auth import (
     LoginRequest,
@@ -22,14 +21,13 @@ router = APIRouter(prefix="/auth", tags=["authentication"])
 
 @router.post("/login", response_model=LoginResponse)
 async def login(payload: LoginRequest) -> LoginResponse:
-    settings = get_settings()
     portal = GucPortal(
         username=payload.username.strip(),
         password=payload.password.get_secret_value(),
         site="giu",
     )
     try:
-        await run_in_threadpool(
+        seasons = await run_in_threadpool(
             lambda: portal.available_seasons(tries=1, delay=0)
         )
     except requests.HTTPError as exc:
@@ -53,12 +51,25 @@ async def login(payload: LoginRequest) -> LoginResponse:
             detail="Could not establish a GIU portal session.",
         ) from None
 
-    token, student = session_store.create(portal)
+    token, student = session_store.create(
+        portal,
+        enrollment_year=payload.enrollment_year,
+        seasons=seasons,
+    )
+    # Use the newest non-empty transcript page inside the student's four-year
+    # enrollment window to choose the advisory year and semester. If GIU is
+    # temporarily flaky, login still succeeds with the configured fallback.
+    try:
+        await run_in_threadpool(student.academic.select_latest_actual_context)
+    except Exception:
+        pass
     return LoginResponse(
         access_token=token,
         expires_in_seconds=student.expires_in_seconds,
-        current_season=settings.current_season,
-        advisory_year=settings.advisory_year,
+        current_season=student.academic.current_season,
+        advisory_year=student.academic.advisory_year,
+        enrollment_year=student.academic.enrollment_year,
+        transcript_years=student.academic.transcript_window_years,
     )
 
 
@@ -71,6 +82,8 @@ def session_status(
         expires_in_seconds=student.expires_in_seconds,
         current_season=student.academic.current_season,
         advisory_year=student.academic.advisory_year,
+        enrollment_year=student.academic.enrollment_year,
+        transcript_years=student.academic.transcript_window_years,
     )
 
 

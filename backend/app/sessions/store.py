@@ -32,7 +32,13 @@ class SessionStore:
     def _digest(token: str) -> str:
         return hashlib.sha256(token.encode("utf-8")).hexdigest()
 
-    def create(self, portal: GucPortal) -> tuple[str, StudentSession]:
+    def create(
+        self,
+        portal: GucPortal,
+        *,
+        enrollment_year: int | None = None,
+        seasons: list[tuple[str, str]] | None = None,
+    ) -> tuple[str, StudentSession]:
         token = secrets.token_urlsafe(40)
         now = time.time()
         session = StudentSession(
@@ -42,10 +48,13 @@ class SessionStore:
                 portal,
                 current_season=self.current_season,
                 advisory_year=self.advisory_year,
+                enrollment_year=enrollment_year,
             ),
             created_at=now,
             expires_at=now + self.ttl_seconds,
         )
+        if seasons is not None:
+            session.academic.prime_seasons(seasons)
         with self._lock:
             self._purge_expired_locked(now)
             self._sessions[self._digest(token)] = session

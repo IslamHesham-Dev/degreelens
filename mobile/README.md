@@ -1,4 +1,4 @@
-# degreelens
+# CareerLoop
 
 A new Flutter project.
 

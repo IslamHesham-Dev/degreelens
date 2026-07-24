@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 import threading
 from typing import Any
 
@@ -15,12 +16,43 @@ class AcademicService:
         *,
         current_season: str,
         advisory_year: str,
+        enrollment_year: int | None = None,
     ) -> None:
         self.portal = portal
         self.current_season = current_season
-        self.advisory_year = advisory_year
+        fallback_start = self._academic_year_start(advisory_year)
+        self.enrollment_year = enrollment_year or max(2000, fallback_start - 3)
+        self.transcript_window_years = [
+            f"{year}-{year + 1}"
+            for year in range(
+                self.enrollment_year,
+                self.enrollment_year + 4,
+            )
+        ]
+        self.advisory_year = (
+            advisory_year
+            if advisory_year in self.transcript_window_years
+            else self.transcript_window_years[0]
+        )
         self.cache: dict[Any, Any] = {}
         self.portal_lock = threading.RLock()
+
+    @staticmethod
+    def _academic_year_start(label: str) -> int:
+        match = re.search(r"\b(20\d{2})\b", label)
+        return int(match.group(1)) if match else 2021
+
+    @staticmethod
+    def _semester_order(label: str) -> tuple[int, int]:
+        match = re.search(
+            r"\b(Winter|Spring|Summer)(?:\s+Semester)?\s+(20\d{2})\b",
+            label,
+            re.IGNORECASE,
+        )
+        if not match:
+            return (0, 0)
+        term_rank = {"winter": 1, "spring": 2, "summer": 3}
+        return (int(match.group(2)), term_rank[match.group(1).casefold()])
 
     @staticmethod
     def _pick(
@@ -52,6 +84,10 @@ class AcademicService:
                 )
             return self.cache["seasons"]
 
+    def prime_seasons(self, seasons: list[tuple[str, str]]) -> None:
+        with self.portal_lock:
+            self.cache["seasons"] = seasons
+
     def _courses(self, season_value: str) -> list[tuple[str, str]]:
         key = ("courses", season_value)
         with self.portal_lock:
@@ -73,6 +109,8 @@ class AcademicService:
         return {
             "simulated_current_season": self.current_season,
             "transcript_year": self.advisory_year,
+            "enrollment_year": self.enrollment_year,
+            "transcript_years": self.transcript_window_years,
             "data_sources": [
                 "GIU portal detailed grades",
                 "GIU transcript",
@@ -89,6 +127,42 @@ class AcademicService:
             self._seasons(), season, "season"
         )
         self.current_season = season_label
+        return self.context()
+
+    def select_latest_actual_context(self) -> dict[str, Any]:
+        """Select the newest semester backed by a non-empty transcript page."""
+        available_years = {
+            label.casefold(): label for _value, label in self._years()
+        }
+        for expected_year in reversed(self.transcript_window_years):
+            actual_year = available_years.get(expected_year.casefold())
+            if actual_year is None:
+                continue
+            data = self.transcript(actual_year)
+            if not data["courses"]:
+                continue
+            self.advisory_year = data["year"]
+            transcript_semesters = {
+                row["semester"].strip()
+                for row in data["courses"]
+                if row["semester"].strip()
+            }
+            transcript_semester_keys = {
+                self._semester_order(semester)
+                for semester in transcript_semesters
+            } - {(0, 0)}
+            season_labels = [label for _value, label in self._seasons()]
+            actual_seasons = [
+                season
+                for season in season_labels
+                if self._semester_order(season) in transcript_semester_keys
+            ]
+            if actual_seasons:
+                self.current_season = max(
+                    actual_seasons,
+                    key=self._semester_order,
+                )
+            return self.context()
         return self.context()
 
     def list_courses(self, season: str | None = None) -> dict[str, Any]:
@@ -139,7 +213,14 @@ class AcademicService:
             return self.cache[key]
 
     def list_transcript_years(self) -> list[str]:
-        return [label for _value, label in self._years()]
+        available = {
+            label.casefold(): label for _value, label in self._years()
+        }
+        return [
+            available[year.casefold()]
+            for year in self.transcript_window_years
+            if year.casefold() in available
+        ]
 
     def transcript(self, year: str | None = None) -> dict[str, Any]:
         requested = year or self.advisory_year
@@ -182,6 +263,34 @@ class AcademicService:
                 for row in data["courses"]
                 if needle in row["course"].casefold()
             ],
+        }
+
+    def full_transcript(self) -> dict[str, Any]:
+        """Load the four academic years beginning at enrollment."""
+        available = {
+            label.casefold(): label for _value, label in self._years()
+        }
+        loaded_years: list[str] = []
+        courses: list[dict[str, str]] = []
+        cumulative_gpa: str | None = None
+        for expected_year in self.transcript_window_years:
+            actual_year = available.get(expected_year.casefold())
+            if actual_year is None:
+                continue
+            data = self.transcript(actual_year)
+            loaded_years.append(data["year"])
+            courses.extend(
+                {"academic_year": data["year"], **row}
+                for row in data["courses"]
+            )
+            if data["cumulative_gpa"]:
+                cumulative_gpa = data["cumulative_gpa"]
+        return {
+            "enrollment_year": self.enrollment_year,
+            "requested_years": self.transcript_window_years,
+            "loaded_years": loaded_years,
+            "cumulative_gpa": cumulative_gpa,
+            "courses": courses,
         }
 
     def clear_cache(self) -> None:

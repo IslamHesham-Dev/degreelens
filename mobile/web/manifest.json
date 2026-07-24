@@ -1,6 +1,6 @@
 {
-    "name": "degreelens",
-    "short_name": "degreelens",
+    "name": "CareerLoop",
+    "short_name": "CareerLoop",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

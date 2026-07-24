@@ -1,11 +1,11 @@
-name: Build iOS IPA (Unsigned)
+name: Build CareerLoop iOS IPA (Unsigned)
 
 on:
   workflow_dispatch:
 
 jobs:
   build-ios:
-    name: Build Unsigned IPA
+    name: Build CareerLoop Unsigned IPA
     runs-on: macos-15
 
     env:
@@ -71,11 +71,11 @@ jobs:
           cp -R "$APP_PATH" build/ios/ipa/Payload/
 
           cd build/ios/ipa
-          zip -r app.ipa Payload
+          zip -r CareerLoop.ipa Payload
 
       - name: Upload IPA
         uses: actions/upload-artifact@v4
         with:
-          name: ios-unsigned-ipa
-          path: mobile/build/ios/ipa/app.ipa
+          name: careerloop-ios-unsigned
+          path: mobile/build/ios/ipa/CareerLoop.ipa
           if-no-files-found: error

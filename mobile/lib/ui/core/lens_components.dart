@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 
 import '../../app/theme.dart';
@@ -25,13 +23,7 @@ class LensLogo extends StatelessWidget {
           width: size,
           height: size,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(size * .34),
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [LensColors.aqua, LensColors.indigo, LensColors.violet],
-              stops: [0, .55, 1],
-            ),
+            borderRadius: BorderRadius.circular(size * .27),
             boxShadow: [
               BoxShadow(
                 color: LensColors.indigo.withValues(alpha: .28),
@@ -40,12 +32,18 @@ class LensLogo extends StatelessWidget {
               ),
             ],
           ),
-          child: CustomPaint(painter: _LensMarkPainter()),
+          clipBehavior: Clip.antiAlias,
+          child: Image.asset(
+            'assets/branding/careerloop-icon.png',
+            fit: BoxFit.cover,
+            filterQuality: FilterQuality.high,
+            semanticLabel: 'CareerLoop',
+          ),
         ),
         if (showWordmark) ...[
           const SizedBox(width: 12),
           Text(
-            'DegreeLens',
+            'CareerLoop',
             style: TextStyle(
               color: wordmarkColor ?? LensColors.ink,
               fontWeight: FontWeight.w900,
@@ -57,35 +55,6 @@ class LensLogo extends StatelessWidget {
       ],
     );
   }
-}
-
-class _LensMarkPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final white = Paint()
-      ..color = Colors.white
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = size.width * .075
-      ..strokeCap = StrokeCap.round;
-    final center = Offset(size.width * .46, size.height * .44);
-    final radius = size.width * .21;
-    canvas.drawCircle(center, radius, white);
-    canvas.drawLine(
-      Offset(center.dx + radius * .68, center.dy + radius * .68),
-      Offset(size.width * .72, size.height * .72),
-      white,
-    );
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius * .55),
-      math.pi * 1.05,
-      math.pi * .72,
-      false,
-      white..strokeWidth = size.width * .045,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 class AuroraBackground extends StatelessWidget {

@@ -1,7 +1,7 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class SessionStorage {
-  static const _tokenKey = 'degreelens_session_token';
+  static const _tokenKey = 'careerloop_session_token';
   final FlutterSecureStorage _storage;
 
   SessionStorage()

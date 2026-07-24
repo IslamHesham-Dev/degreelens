@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field, SecretStr
 class LoginRequest(BaseModel):
     username: str = Field(min_length=1, max_length=160)
     password: SecretStr
+    enrollment_year: int = Field(ge=2000, le=2100)
 
 
 class LoginResponse(BaseModel):
@@ -14,6 +15,8 @@ class LoginResponse(BaseModel):
     expires_in_seconds: int
     current_season: str
     advisory_year: str
+    enrollment_year: int
+    transcript_years: list[str]
 
 
 class SessionResponse(BaseModel):
@@ -21,6 +24,8 @@ class SessionResponse(BaseModel):
     expires_in_seconds: int
     current_season: str
     advisory_year: str
+    enrollment_year: int
+    transcript_years: list[str]
 
 
 class MessageResponse(BaseModel):

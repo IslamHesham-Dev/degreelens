@@ -121,7 +121,7 @@ class _CourseDetailsScreenState extends State<CourseDetailsScreen> {
                     context.go('/advisor');
                   },
                   icon: const Icon(Icons.auto_awesome_rounded),
-                  label: const Text('Ask DegreeLens about this course'),
+                  label: const Text('Ask CareerLoop about this course'),
                 ),
               ],
             ],

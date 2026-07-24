@@ -5,7 +5,7 @@ Flutter UI
   -> HTTPS JSON API
 FastAPI
   -> opaque session token -> isolated StudentSession
-  -> DegreeLens agent -> per-session academic tools/cache
+  -> CareerLoop agent -> per-session academic tools/cache
   -> GucPortal -> GIU read-only pages
 ```
 
@@ -16,7 +16,7 @@ The Flutter app separates:
 - UI screens and reusable visual components
 - API services and JSON models
 - authentication, academic, and advisor repositories
-- secure device storage for only the opaque DegreeLens session token
+- secure device storage for only the opaque CareerLoop session token
 
 The app contains no GIU credentials and no Anthropic key.
 

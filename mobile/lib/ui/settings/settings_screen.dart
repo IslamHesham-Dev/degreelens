@@ -50,7 +50,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 eyebrow: 'Control centre',
                 title: 'Private by design.',
                 subtitle:
-                    'Manage the assumptions, session, and cached academic data behind DegreeLens.',
+                    'Manage the assumptions, session, and cached academic data behind CareerLoop.',
               ),
               const SizedBox(height: 24),
               LensCard(
@@ -129,7 +129,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'The app stores only a short-lived DegreeLens session token in secure device storage.',
+                      'The app stores only a short-lived CareerLoop session token in secure device storage.',
                       style: TextStyle(
                         color: Colors.white.withValues(alpha: .62),
                         height: 1.45,

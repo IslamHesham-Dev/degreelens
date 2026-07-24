@@ -22,7 +22,7 @@ app = FastAPI(
     version="0.1.0",
     description=(
         "Private, read-only GIU academic advisory API. "
-        "CMS is intentionally not connected."
+        "The CMS connector is not configured yet."
     ),
     docs_url="/docs" if settings.environment != "production" else None,
     redoc_url=None,
