@@ -34,6 +34,7 @@ class _CoursesScreenState extends State<CoursesScreen> {
   @override
   Widget build(BuildContext context) {
     final academic = context.watch<AcademicRepository>();
+    final keyboardVisible = MediaQuery.viewInsetsOf(context).bottom > 0;
     final needle = _search.text.trim().toLowerCase();
     final visible = academic.courses
         .where((course) =>
@@ -55,10 +56,20 @@ class _CoursesScreenState extends State<CoursesScreen> {
           const SizedBox(height: 22),
           TextField(
             controller: _search,
+            textInputAction: TextInputAction.done,
+            onSubmitted: (_) => FocusManager.instance.primaryFocus?.unfocus(),
             onChanged: (_) => setState(() {}),
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               hintText: 'Search by code or course name',
-              prefixIcon: Icon(Icons.search_rounded),
+              prefixIcon: const Icon(Icons.search_rounded),
+              suffixIcon: keyboardVisible
+                  ? IconButton(
+                      tooltip: 'Hide keyboard',
+                      onPressed: () =>
+                          FocusManager.instance.primaryFocus?.unfocus(),
+                      icon: const Icon(Icons.keyboard_hide_rounded),
+                    )
+                  : null,
             ),
           ),
           const SizedBox(height: 20),

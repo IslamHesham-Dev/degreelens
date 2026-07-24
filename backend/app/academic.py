@@ -51,7 +51,8 @@ class AcademicService:
         )
         if not match:
             return (0, 0)
-        term_rank = {"winter": 1, "spring": 2, "summer": 3}
+        # GIU's sequence inside a labeled year is Spring, Summer, then Winter.
+        term_rank = {"spring": 1, "summer": 2, "winter": 3}
         return (int(match.group(2)), term_rank[match.group(1).casefold()])
 
     @staticmethod
@@ -138,7 +139,11 @@ class AcademicService:
             actual_year = available_years.get(expected_year.casefold())
             if actual_year is None:
                 continue
-            data = self.transcript(actual_year)
+            try:
+                data = self.transcript(actual_year)
+            except Exception:
+                # A flaky/future page must not prevent checking an older year.
+                continue
             if not data["courses"]:
                 continue
             self.advisory_year = data["year"]

@@ -451,6 +451,7 @@ class _Composer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final keyboardVisible = MediaQuery.viewInsetsOf(context).bottom > 0;
     return Container(
       padding: EdgeInsets.fromLTRB(
         16,
@@ -471,10 +472,20 @@ class _Composer extends StatelessWidget {
               minLines: 1,
               maxLines: 4,
               textCapitalization: TextCapitalization.sentences,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 hintText: 'Ask about a course, grade, or plan…',
-                contentPadding:
-                    EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 13,
+                ),
+                suffixIcon: keyboardVisible
+                    ? IconButton(
+                        tooltip: 'Hide keyboard',
+                        onPressed: () =>
+                            FocusManager.instance.primaryFocus?.unfocus(),
+                        icon: const Icon(Icons.keyboard_hide_rounded),
+                      )
+                    : null,
               ),
               onSubmitted: (_) => onSend(),
             ),

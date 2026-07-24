@@ -125,3 +125,11 @@ def test_latest_real_transcript_semester_is_auto_selected() -> None:
 
     assert context["transcript_year"] == "2024-2025"
     assert context["simulated_current_season"] == "Spring 2025"
+
+
+def test_giu_semesters_are_ordered_spring_summer_winter() -> None:
+    labels = ["Summer 2024", "Spring 2024", "Winter 2024"]
+
+    latest = max(labels, key=AcademicService._semester_order)
+
+    assert latest == "Winter 2024"

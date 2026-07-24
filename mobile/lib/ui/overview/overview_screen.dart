@@ -118,6 +118,7 @@ class _AdvisorySemesterPicker extends StatelessWidget {
     final current = academic.context?.currentSeason ?? 'Winter 2024';
     final options = <String>{current, ...academic.seasons}.toList();
     return DropdownButtonFormField<String>(
+      key: ValueKey(current),
       value: current,
       isExpanded: true,
       decoration: const InputDecoration(
